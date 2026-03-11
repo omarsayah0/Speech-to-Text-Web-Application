@@ -44,7 +44,7 @@ The system also includes authentication, role management, and an admin dashboard
 
 ---
 
-## ✨ Features
+## Features
 
 - Audio file upload and transcription
 - Speech-to-Text processing pipeline
@@ -56,7 +56,7 @@ The system also includes authentication, role management, and an admin dashboard
 
 ---
 
-## ⚙️ Installation
+## Installation
 
 Clone the repository:
 
