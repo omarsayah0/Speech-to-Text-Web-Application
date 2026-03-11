@@ -15,6 +15,7 @@ The system also includes authentication, role management, and an admin dashboard
 ## 🧾 Table of Contents
 
 - [Introduction](#-introduction)
+- [Project Structure](#-Project-Structure)
 - [Features](#-Features)
 - [Installation](#Installation)
 - [Usage](#-Usage)
@@ -23,7 +24,6 @@ The system also includes authentication, role management, and an admin dashboard
 - [Examples](#-Examples)
 - [Troubleshooting](#-Troubleshooting)
 - [Dependencies](#-Dependencies)
-- [Project Structure](#-Project-Structure)
 - [Output Snapshots](#-Output-Snapshots)
 - [Contributors](#-Contributors)
 - [License](#-License)
