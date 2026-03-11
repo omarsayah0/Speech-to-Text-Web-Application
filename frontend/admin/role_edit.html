@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% set active = "roles" %}
+{% block title %}Edit Role{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Edit Role: <span style="color:var(--accent);">{{ role.name }}</span></h1>
+  <a href="/admin/roles" class="btn btn-ghost">← Back to Roles</a>
+</div>
+
+<div id="flash"></div>
+
+<!-- Rename -->
+<div class="card" style="max-width:480px;">
+  <h3 style="font-size:14px; font-weight:600; margin-bottom:14px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px;">Rename Role</h3>
+  <div style="display:flex; gap:10px;">
+    <input type="text" id="role-name" value="{{ role.name }}" style="flex:1; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-size:14px;" />
+    <button class="btn btn-primary" onclick="renameRole()">Save Name</button>
+  </div>
+</div>
+
+<!-- Assign Permissions -->
+<div class="card">
+  <h3 style="font-size:14px; font-weight:600; margin-bottom:4px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px;">Assign Permissions</h3>
+  <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Check the permissions this role should have. Saving replaces all existing assignments.</p>
+
+  {% if all_permissions %}
+  <div class="checkbox-grid" id="perm-grid">
+    {% for p in all_permissions %}
+    <div class="checkbox-item">
+      <input type="checkbox" id="perm-{{ p.id }}" value="{{ p.id }}"
+        {% if p.id in assigned_ids %}checked{% endif %} />
+      <label for="perm-{{ p.id }}">
+        <code style="background:#f0f1f5; padding:1px 5px; border-radius:3px; font-size:11px;">{{ p.code }}</code>
+        {% if p.description %}<span class="perm-desc">{{ p.description }}</span>{% endif %}
+      </label>
+    </div>
+    {% endfor %}
+  </div>
+  <div style="margin-top:14px; display:flex; gap:10px; align-items:center;">
+    <button class="btn btn-primary" onclick="savePermissions()">Save Permissions</button>
+    <button class="btn btn-ghost btn-sm" onclick="toggleAll(true)">Select All</button>
+    <button class="btn btn-ghost btn-sm" onclick="toggleAll(false)">Clear All</button>
+  </div>
+  {% else %}
+  <p style="color:var(--muted); font-size:13px;">No permissions defined yet. <a href="/admin/permissions">Create some first.</a></p>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const roleId = {{ role.id | tojson }};
+
+function flash(msg, type = 'success') {
+  const el = document.getElementById('flash');
+  el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+  if (type === 'success') setTimeout(() => el.innerHTML = '', 3000);
+}
+
+async function renameRole() {
+  const name = document.getElementById('role-name').value.trim();
+  if (!name) { flash('Name cannot be empty.', 'error'); return; }
+  const res = await fetch(`/admin/roles/${roleId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  if (res.ok) {
+    flash('Role renamed successfully.');
+  } else {
+    const d = await res.json().catch(() => ({}));
+    flash(d.detail || 'Rename failed.', 'error');
+  }
+}
+
+async function savePermissions() {
+  const checked = [...document.querySelectorAll('#perm-grid input[type=checkbox]:checked')];
+  const permission_ids = checked.map(c => c.value);
+  const res = await fetch(`/admin/roles/${roleId}/permissions`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ permission_ids }),
+  });
+  if (res.ok) {
+    flash(`Saved ${permission_ids.length} permission(s).`);
+  } else {
+    const d = await res.json().catch(() => ({}));
+    flash(d.detail || 'Save failed.', 'error');
+  }
+}
+
+function toggleAll(checked) {
+  document.querySelectorAll('#perm-grid input[type=checkbox]').forEach(c => c.checked = checked);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% set active = "dashboard" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-header"><h1>Dashboard</h1></div>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="label">Users</div>
+    <div class="value">{{ user_count }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Transcriptions</div>
+    <div class="value">{{ log_count }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Failed Jobs</div>
+    <div class="value" style="color:{% if failed_count > 0 %}var(--danger){% else %}inherit{% endif %}">{{ failed_count }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Roles</div>
+    <div class="value">{{ role_count }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Permissions</div>
+    <div class="value">{{ perm_count }}</div>
+  </div>
+</div>
+
+<div class="card">
+  <p style="color:var(--muted); font-size:13px; line-height:1.8;">
+    Welcome back, <strong>{{ admin.email }}</strong>
+    <span class="badge badge-{{ admin.role }}" style="margin-left:6px;">{{ admin.role }}</span><br>
+    Manage <a href="/admin/users">users</a> ·
+    <a href="/admin/logs">STT logs</a> ·
+    <a href="/admin/roles">roles</a> ·
+    <a href="/admin/permissions">permissions</a>
+  </p>
+</div>
+{% endblock %}

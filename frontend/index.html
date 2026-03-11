@@ -1,0 +1,129 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>STT Demo</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 24px; }
+      textarea { width: 100%; height: 220px; padding: 12px; font-size: 14px; }
+      button { padding: 10px 14px; cursor: pointer; }
+      .row { margin-top: 12px; }
+      .small { color: #555; font-size: 12px; }
+      select { padding: 8px 10px; font-size: 14px; cursor: pointer; }
+      label { font-size: 14px; margin-right: 6px; }
+      header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+      #logout-btn { padding: 7px 14px; font-size: 13px; background: #fff; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
+      #logout-btn:hover { background: #f0f0f0; }
+      .plan-badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 12px; font-weight: 700; }
+      .plan-tiny   { background: #f0f1f3; color: #555; }
+      .plan-small  { background: #d4f7de; color: #2ea043; }
+      .plan-medium { background: #e8f4ff; color: #1a73e8; }
+      .plan-large  { background: #fff0e0; color: #c47a00; }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <h2 style="margin:0">Omar's STT</h2>
+      <div style="display:flex; align-items:center; gap:14px;">
+        <span style="font-size:12px; color:#555;">
+          Plan: <span class="plan-badge plan-{{ plan }}">{{ plan | upper }}</span>
+        </span>
+        {% if plan != 'tiny' %}
+        <a href="/upgrade" style="padding:6px 13px; font-size:12px; background:#1a73e8; color:#fff; border-radius:4px; text-decoration:none; font-weight:600;">⚡ Change Plan</a>
+        {% elif plan == 'tiny' %}
+        <a href="/upgrade" style="padding:6px 13px; font-size:12px; background:#1a73e8; color:#fff; border-radius:4px; text-decoration:none; font-weight:600;">⚡ Upgrade Plan</a>
+        {% endif %}
+        <button id="logout-btn">Logout</button>
+      </div>
+    </header>
+
+    <form id="f">
+      <input type="file" id="file" accept="audio/*" />
+
+      <label for="model">Model:</label>
+      <select id="model">
+        <option value="tiny"
+          {% if 'tiny' not in allowed_models %}disabled style="color:#aaa;"{% endif %}>
+          Tiny (fastest){% if 'tiny' not in allowed_models %} 🔒{% endif %}
+        </option>
+        <option value="small" selected
+          {% if 'small' not in allowed_models %}disabled style="color:#aaa;"{% endif %}>
+          Small (default){% if 'small' not in allowed_models %} 🔒 Small plan+{% endif %}
+        </option>
+        <option value="medium"
+          {% if 'medium' not in allowed_models %}disabled style="color:#aaa;"{% endif %}>
+          Medium{% if 'medium' not in allowed_models %} 🔒 Medium plan+{% endif %}
+        </option>
+        <option value="large"
+          {% if 'large' not in allowed_models %}disabled style="color:#aaa;"{% endif %}>
+          Large (most accurate){% if 'large' not in allowed_models %} 🔒 Large plan{% endif %}
+        </option>
+      </select>
+
+      <button type="submit">Transcribe</button>
+    </form>
+
+    <div class="row small" id="meta"></div>
+
+    <div class="row">
+      <textarea id="text" placeholder="Transcription will appear here..." readonly></textarea>
+    </div>
+
+    <script>
+      // Auto-select first available model
+      (function() {
+        const allowed = {{ allowed_models | tojson }};
+        const sel = document.getElementById("model");
+        // Pick "small" if available, else first allowed model
+        const preferred = ["small", "tiny", "medium", "large"];
+        for (const m of preferred) {
+          if (allowed.includes(m)) {
+            sel.value = m;
+            break;
+          }
+        }
+      })();
+
+      document.getElementById("logout-btn").addEventListener("click", async () => {
+        await fetch("/auth/logout", { method: "POST" });
+        window.location.href = "/login";
+      });
+
+      const form = document.getElementById("f");
+      const meta = document.getElementById("meta");
+      const textBox = document.getElementById("text");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const file = document.getElementById("file").files[0];
+        if (!file) return;
+
+        const model = document.getElementById("model").value;
+        const fd = new FormData();
+        fd.append("file", file);
+
+        meta.textContent = "Processing...";
+        textBox.value = "";
+
+        const res = await fetch(`/transcriptions?model=${model}`, { method: "POST", body: fd });
+
+        if (res.status === 401) {
+          window.location.href = "/login";
+          return;
+        }
+
+        if (res.status === 403) {
+          const data = await res.json().catch(() => ({}));
+          meta.textContent = data.detail || "Access denied. Please upgrade your plan.";
+          return;
+        }
+
+        const data = await res.json();
+        textBox.value = data.text || "";
+        meta.textContent = `model: ${data.model} | language: ${data.language} (p=${(data.language_probability ?? 0).toFixed(3)})`;
+      });
+    </script>
+  </body>
+</html>

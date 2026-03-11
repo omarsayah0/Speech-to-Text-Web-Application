@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% set active = "logs" %}
+{% block title %}Log Detail{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Log Detail</h1>
+  <div style="display:flex; gap:10px;">
+    {% if is_admin %}
+    <button class="btn btn-danger" onclick="deleteLog('{{ log.id }}')">Delete</button>
+    {% endif %}
+    <a href="/admin/logs" class="btn btn-ghost">← Back to Logs</a>
+  </div>
+</div>
+
+<div id="flash"></div>
+
+<div class="card" style="padding: 0; max-width: 720px;">
+  <dl class="detail-grid">
+    <dt>ID</dt><dd class="mono">{{ log.id }}</dd>
+    <dt>Created At</dt><dd>{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}</dd>
+    <dt>Status</dt>
+    <dd>
+      {% if log.status == 'success' %}<span class="badge badge-success">success</span>
+      {% else %}<span class="badge badge-danger">{{ log.status }}</span>{% endif %}
+    </dd>
+    <dt>Original Filename</dt><dd>{{ log.original_filename }}</dd>
+    <dt>Stored Filename</dt><dd class="mono" style="font-size:12px;">{{ log.stored_filename }}</dd>
+    <dt>File Size</dt><dd>{{ (log.file_size_bytes / 1024) | round(2) }} KB</dd>
+    <dt>Model</dt><dd><span class="badge badge-user">{{ log.model }}</span></dd>
+    <dt>Processing Time</dt><dd>{{ log.processing_time_ms }} ms</dd>
+    <dt>Transcript Length</dt><dd>{% if log.transcript_length is not none %}{{ log.transcript_length }} chars{% else %}—{% endif %}</dd>
+    <dt>Client IP</dt><dd>{{ log.client_ip or '—' }}</dd>
+    <dt>User ID</dt>
+    <dd class="mono" style="font-size:12px;">
+      {% if log.user_id %}{{ log.user_id }}{% else %}—{% endif %}
+    </dd>
+    {% if log.error_message %}
+    <dt>Error</dt><dd style="color:var(--danger);">{{ log.error_message }}</dd>
+    {% endif %}
+    {% if log.extra %}
+    <dt>Extra</dt><dd><pre class="json">{{ log.extra | tojson(indent=2) }}</pre></dd>
+    {% endif %}
+  </dl>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if is_admin %}
+<script>
+async function deleteLog(id) {
+  if (!confirm('Delete this log? This is permanent.')) return;
+  const res = await fetch(`/admin/stt-logs/${id}`, { method: 'DELETE' });
+  if (res.ok || res.status === 204) { window.location.href = '/admin/logs'; }
+  else {
+    const d = await res.json().catch(() => ({}));
+    document.getElementById('flash').innerHTML = `<div class="alert alert-error">${d.detail || 'Delete failed'}</div>`;
+  }
+}
+</script>
+{% endif %}
+{% endblock %}

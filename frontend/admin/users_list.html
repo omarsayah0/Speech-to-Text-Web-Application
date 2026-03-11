@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% set active = "users" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Users</h1>
+  {% if is_admin %}<a href="/admin/users/new" class="btn btn-primary">+ New User</a>{% endif %}
+</div>
+
+<div id="flash"></div>
+
+<div class="card" style="padding: 16px 20px;">
+  <form method="get" action="/admin/users" style="display:flex; gap:10px; align-items:flex-end;">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search by email…" style="padding:7px 10px; border:1px solid var(--border); border-radius:6px; font-size:13px; min-width:220px;" />
+    <button type="submit" class="btn btn-ghost btn-sm">Search</button>
+    {% if q %}<a href="/admin/users" class="btn btn-ghost btn-sm">Clear</a>{% endif %}
+  </form>
+</div>
+
+<div class="card" style="padding: 0;">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Plan</th>
+          <th>Created</th>
+          <th>ID</th>
+          {% if is_admin %}<th>Actions</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td>{{ u.email }}</td>
+          <td><span class="badge badge-{{ u.role }}">{{ u.role }}</span></td>
+          <td><span class="badge badge-{{ u.plan or 'free' }}">{{ u.plan or 'free' }}</span></td>
+          <td>{{ u.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+          <td class="mono" style="font-size:11px; color:var(--muted);">{{ u.id[:8] }}…</td>
+          {% if is_admin %}
+          <td>
+            <a href="/admin/users/{{ u.id }}/edit" class="btn btn-ghost btn-sm">Edit</a>
+            <button class="btn btn-danger btn-sm" onclick="deleteUser('{{ u.id }}', '{{ u.email }}')">Delete</button>
+          </td>
+          {% endif %}
+        </tr>
+        {% else %}
+        <tr><td colspan="{% if is_admin %}6{% else %}5{% endif %}" style="text-align:center; color:var(--muted); padding:32px;">No users found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="pagination">
+  {% if has_prev %}<a href="?q={{ q }}&offset={{ prev_offset }}&limit={{ limit }}" class="btn btn-ghost btn-sm">← Prev</a>{% endif %}
+  <span>{{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}</span>
+  {% if has_next %}<a href="?q={{ q }}&offset={{ next_offset }}&limit={{ limit }}" class="btn btn-ghost btn-sm">Next →</a>{% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if is_admin %}
+<script>
+async function deleteUser(id, email) {
+  if (!confirm(`Delete user "${email}"? This is permanent.`)) return;
+  const res = await fetch(`/admin/users/${id}`, { method: 'DELETE' });
+  if (res.ok || res.status === 204) {
+    document.getElementById('flash').innerHTML = '<div class="alert alert-success">User deleted.</div>';
+    setTimeout(() => location.reload(), 800);
+  } else {
+    const d = await res.json().catch(() => ({}));
+    document.getElementById('flash').innerHTML = `<div class="alert alert-error">${d.detail || 'Delete failed'}</div>`;
+  }
+}
+</script>
+{% endif %}
+{% endblock %}

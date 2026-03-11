@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Admin{% endblock %} — STT Admin</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f7f8fa; --sidebar-bg: #1e2130; --sidebar-text: #a9b0c3;
+      --sidebar-active: #fff; --sidebar-hover: #2c3047; --accent: #4f6ef7;
+      --danger: #e5534b; --success: #2ea043; --warning: #d29922;
+      --border: #e2e4ea; --card-bg: #fff; --text: #1a1d2e; --muted: #6b7280;
+      --sidebar-w: 220px;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 14px; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+    aside { width: var(--sidebar-w); min-height: 100vh; background: var(--sidebar-bg); display: flex; flex-direction: column; position: fixed; top:0; left:0; bottom:0; }
+    .sidebar-brand { padding: 20px 18px; font-size: 15px; font-weight: 700; color: #fff; border-bottom: 1px solid #2c3047; }
+    .sidebar-brand span { color: var(--accent); }
+    .sidebar-section { padding: 10px 18px 4px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #555e7a; font-weight: 600; }
+    nav { flex: 1; padding: 8px 0; overflow-y: auto; }
+    nav a { display: flex; align-items: center; gap: 10px; padding: 9px 18px; color: var(--sidebar-text); text-decoration: none; font-size: 13px; transition: background .15s, color .15s; }
+    nav a:hover { background: var(--sidebar-hover); color: #fff; }
+    nav a.active { color: var(--sidebar-active); background: var(--sidebar-hover); font-weight: 600; }
+    .sidebar-footer { padding: 14px 18px; border-top: 1px solid #2c3047; font-size: 12px; color: var(--sidebar-text); }
+    .sidebar-footer strong { color: #fff; display: block; margin-bottom: 6px; font-size: 13px; }
+    .sidebar-footer a { color: var(--sidebar-text); text-decoration: none; font-size: 12px; }
+    .sidebar-footer a:hover { color: #fff; }
+    main { margin-left: var(--sidebar-w); flex: 1; padding: 28px 32px; min-height: 100vh; }
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .page-header h1 { font-size: 20px; font-weight: 700; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 20px 24px; margin-bottom: 20px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+    .stat-card .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+    .stat-card .value { font-size: 28px; font-weight: 700; margin-top: 6px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); background: #f9fafc; font-weight: 600; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f9fafc; }
+    td.mono { font-family: monospace; font-size: 12px; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+    .badge-success { background: #d4f7de; color: var(--success); }
+    .badge-danger  { background: #fde8e8; color: var(--danger); }
+    .badge-admin   { background: #e8ecff; color: var(--accent); }
+    .badge-user    { background: #f0f1f3; color: var(--muted); }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid transparent; text-decoration: none; transition: opacity .15s; }
+    .btn:hover { opacity: .85; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-danger  { background: var(--danger); color: #fff; }
+    .btn-ghost   { background: transparent; border-color: var(--border); color: var(--text); }
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .4px; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; background: #fff; color: var(--text); outline: none; transition: border-color .15s; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); }
+    .form-hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .form-actions { display: flex; gap: 10px; margin-top: 24px; }
+    .filter-bar { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 20px; }
+    .filter-bar .form-group { margin-bottom: 0; }
+    .filter-bar input, .filter-bar select { padding: 7px 10px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; }
+    .filter-bar input { min-width: 200px; }
+    .pagination { display: flex; gap: 8px; align-items: center; margin-top: 16px; font-size: 13px; color: var(--muted); }
+    .alert { padding: 10px 14px; border-radius: 6px; margin-bottom: 16px; font-size: 13px; }
+    .alert-error   { background: #fde8e8; color: var(--danger); border: 1px solid #f7bfbf; }
+    .alert-success { background: #d4f7de; color: var(--success); border: 1px solid #a8e6c0; }
+    .detail-grid { display: grid; grid-template-columns: 200px 1fr; gap: 0; }
+    .detail-grid dt { padding: 10px 14px; font-weight: 600; font-size: 12px; color: var(--muted); text-transform: uppercase; background: #f9fafc; border-bottom: 1px solid var(--border); }
+    .detail-grid dd { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 13px; word-break: break-all; }
+    pre.json { background: #1e2130; color: #a9b0c3; padding: 14px; border-radius: 6px; font-size: 12px; overflow-x: auto; white-space: pre-wrap; }
+    /* Checkbox grid for permission assignment */
+    .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; max-height: 320px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; padding: 12px; }
+    .checkbox-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 8px; border-radius: 4px; }
+    .checkbox-item:hover { background: #f5f6fa; }
+    .checkbox-item input[type=checkbox] { width: 15px; height: 15px; margin-top: 2px; flex-shrink: 0; accent-color: var(--accent); cursor: pointer; }
+    .checkbox-item label { font-size: 13px; cursor: pointer; line-height: 1.4; }
+    .checkbox-item .perm-desc { font-size: 11px; color: var(--muted); display: block; }
+  </style>
+</head>
+<body>
+<aside>
+  <div class="sidebar-brand">STT <span>Admin</span></div>
+  <nav>
+    <div class="sidebar-section">Overview</div>
+    <a href="/admin" {% if active == 'dashboard' %}class="active"{% endif %}>
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+
+    <div class="sidebar-section">Management</div>
+    <a href="/admin/users" {% if active == 'users' %}class="active"{% endif %}>
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      Users
+    </a>
+    <a href="/admin/logs" {% if active == 'logs' %}class="active"{% endif %}>
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      STT Logs
+    </a>
+
+    <a href="/admin/audit-logs" {% if active == 'audit' %}class="active"{% endif %}>
+  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <path d="M4 6h16M4 12h16M4 18h16"/>
+  </svg>
+  Audit Logs
+  </a>
+
+    <div class="sidebar-section">Access Control</div>
+    <a href="/admin/roles" {% if active == 'roles' %}class="active"{% endif %}>
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+      Roles
+    </a>
+    <a href="/admin/permissions" {% if active == 'permissions' %}class="active"{% endif %}>
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Permissions
+    </a>
+    
+    <div class="sidebar-section">App</div>
+    <a href="/app">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+      STT App
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <strong>{{ admin.email }}</strong>
+    <a href="#" id="logout-link">Sign out</a>
+  </div>
+</aside>
+<main>
+  {% block content %}{% endblock %}
+</main>
+<script>
+  document.getElementById("logout-link").addEventListener("click", async (e) => {
+    e.preventDefault();
+    await fetch("/auth/logout", { method: "POST" });
+    window.location.href = "/login";
+  });
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

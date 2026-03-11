@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% set active = "users" %}
+{% block title %}{% if edit_user %}Edit User{% else %}New User{% endif %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>{% if edit_user %}Edit User{% else %}New User{% endif %}</h1>
+  <a href="/admin/users" class="btn btn-ghost">← Back to Users</a>
+</div>
+
+<div id="flash"></div>
+
+<!-- Basic Info -->
+<div class="card" style="max-width:520px;">
+  <h3 style="font-size:14px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:16px;">Account Info</h3>
+
+  <div class="form-group">
+    <label>Email</label>
+    <input type="email" id="email" value="{{ edit_user.email if edit_user else '' }}" placeholder="user@example.com" />
+  </div>
+  <div class="form-group">
+    <label>System Role</label>
+    <select id="role">
+      <option value="user"      {% if not edit_user or edit_user.role == 'user'      %}selected{% endif %}>user</option>
+      <option value="moderator" {% if edit_user and edit_user.role == 'moderator' %}selected{% endif %}>moderator</option>
+      <option value="admin"     {% if edit_user and edit_user.role == 'admin'     %}selected{% endif %}>admin</option>
+    </select>
+    <div class="form-hint">
+      <strong>admin</strong> — full access to everything.<br>
+      <strong>moderator</strong> — can view dashboard, users, and logs. Cannot edit or delete.<br>
+      <strong>user</strong> — no admin panel access.
+    </div>
+  </div>
+  <div class="form-group">
+    <label>Subscription Plan</label>
+    <select id="plan">
+      <option value="tiny"   {% if not edit_user or edit_user.plan in ('tiny', 'free') %}selected{% endif %}>tiny (free)</option>
+      <option value="small"  {% if edit_user and edit_user.plan == 'small'  %}selected{% endif %}>small ($5/mo)</option>
+      <option value="medium" {% if edit_user and edit_user.plan == 'medium' %}selected{% endif %}>medium ($10/mo)</option>
+      <option value="large"  {% if edit_user and edit_user.plan in ('large', 'pro') %}selected{% endif %}>large ($20/mo)</option>
+    </select>
+    <div class="form-hint">
+      <strong>tiny</strong> — free, tiny model only.<br>
+      <strong>small</strong> — $5/mo, tiny + small models.<br>
+      <strong>medium</strong> — $10/mo, tiny + small + medium models.<br>
+      <strong>large</strong> — $20/mo, all models including large.
+    </div>
+  </div>
+  <div class="form-group">
+    <label>Password {% if edit_user %}<span style="font-weight:400; text-transform:none;">(leave blank to keep)</span>{% endif %}</label>
+    <input type="password" id="password" placeholder="{% if edit_user %}New password (optional){% else %}Password{% endif %}" autocomplete="new-password" />
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-primary" onclick="submitInfo()">{% if edit_user %}Save Changes{% else %}Create User{% endif %}</button>
+    <a href="/admin/users" class="btn btn-ghost">Cancel</a>
+  </div>
+</div>
+
+<!-- Role Assignment (edit only) -->
+{% if edit_user %}
+<div class="card" style="max-width:520px;">
+  <h3 style="font-size:14px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:4px;">Assigned RBAC Roles</h3>
+  <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Select which roles this user should have. Saving replaces all current assignments.</p>
+
+  {% if all_roles %}
+  <div class="checkbox-grid" id="roles-grid">
+    {% for r in all_roles %}
+    <div class="checkbox-item">
+      <input type="checkbox" id="role-{{ r.id }}" value="{{ r.id }}"
+        {% if r.id in assigned_role_ids %}checked{% endif %} />
+      <label for="role-{{ r.id }}">{{ r.name }}</label>
+    </div>
+    {% endfor %}
+  </div>
+  <div style="margin-top:14px;">
+    <button class="btn btn-primary" onclick="saveRoles()">Save Roles</button>
+  </div>
+  {% else %}
+  <p style="color:var(--muted); font-size:13px;">No roles defined. <a href="/admin/roles">Create roles first.</a></p>
+  {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const editId = {{ ('"' + edit_user.id + '"') | safe if edit_user else 'null' }};
+
+function flash(msg, type = 'success') {
+  const el = document.getElementById('flash');
+  el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+  if (type === 'success') setTimeout(() => el.innerHTML = '', 3000);
+}
+
+async function submitInfo() {
+  const email = document.getElementById('email').value.trim();
+  const role  = document.getElementById('role').value;
+  const plan  = document.getElementById('plan').value;
+  const password = document.getElementById('password').value;
+
+  const body = { role, plan };
+  if (email) body.email = email;
+  if (password) body.password = password;
+
+  if (!editId) {
+    if (!email)    { flash('Email is required.',    'error'); return; }
+    if (!password) { flash('Password is required.', 'error'); return; }
+  }
+
+  const res = await fetch(editId ? `/admin/users/${editId}` : '/admin/users', {
+    method: editId ? 'PATCH' : 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (res.ok) {
+    if (editId) { flash('User updated.'); }
+    else        { window.location.href = '/admin/users'; }
+  } else {
+    const d = await res.json().catch(() => ({}));
+    flash(d.detail || 'Operation failed.', 'error');
+  }
+}
+
+async function saveRoles() {
+  const checked = [...document.querySelectorAll('#roles-grid input[type=checkbox]:checked')];
+  const role_ids = checked.map(c => c.value);
+  const res = await fetch(`/admin/users/${editId}/roles`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ role_ids }),
+  });
+  if (res.ok) {
+    flash(`Saved ${role_ids.length} role(s).`);
+  } else {
+    const d = await res.json().catch(() => ({}));
+    flash(d.detail || 'Save failed.', 'error');
+  }
+}
+</script>
+{% endblock %}

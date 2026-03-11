@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% set active = "roles" %}
+{% block title %}Roles{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Roles</h1>
+  {% if is_admin %}<button class="btn btn-primary" onclick="openCreate()">+ New Role</button>{% endif %}
+</div>
+
+<div id="flash"></div>
+
+{% if is_admin %}
+<div id="create-panel" style="display:none;" class="card" style="max-width:400px;">
+  <h3 style="font-size:15px; margin-bottom:16px;">New Role</h3>
+  <div class="form-group">
+    <label>Role Name</label>
+    <input type="text" id="new-role-name" placeholder="e.g. editor, moderator" />
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-primary" onclick="createRole()">Create</button>
+    <button class="btn btn-ghost" onclick="closeCreate()">Cancel</button>
+  </div>
+</div>
+{% endif %}
+
+<div class="card" style="padding:0;">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Permissions</th>
+          <th>Created</th>
+          {% if is_admin %}<th>Actions</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in roles %}
+        <tr>
+          <td><strong>{{ r.name }}</strong></td>
+          <td><span class="badge badge-user">{{ r.permission_count }} permission{{ 's' if r.permission_count != 1 else '' }}</span></td>
+          <td>{{ r.created_at.strftime('%Y-%m-%d') }}</td>
+          {% if is_admin %}
+          <td>
+            <a href="/admin/roles/{{ r.id }}/edit" class="btn btn-ghost btn-sm">Edit & Assign</a>
+            <button class="btn btn-danger btn-sm" onclick="deleteRole('{{ r.id }}', '{{ r.name }}')">Delete</button>
+          </td>
+          {% endif %}
+        </tr>
+        {% else %}
+        <tr><td colspan="{% if is_admin %}4{% else %}3{% endif %}" style="text-align:center; color:var(--muted); padding:32px;">No roles yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if is_admin %}
+<script>
+function openCreate() { document.getElementById('create-panel').style.display='block'; document.getElementById('new-role-name').focus(); }
+function closeCreate() { document.getElementById('create-panel').style.display='none'; }
+function flash(msg, type='success') { document.getElementById('flash').innerHTML=`<div class="alert alert-${type}">${msg}</div>`; }
+async function createRole() {
+  const name = document.getElementById('new-role-name').value.trim();
+  if (!name) { flash('Name is required.','error'); return; }
+  const res = await fetch('/admin/roles', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name}) });
+  if (res.ok) { location.reload(); } else { const d=await res.json().catch(()=>({})); flash(d.detail||'Create failed.','error'); }
+}
+async function deleteRole(id, name) {
+  if (!confirm(`Delete role "${name}"?`)) return;
+  const res = await fetch(`/admin/roles/${id}`, { method:'DELETE' });
+  if (res.ok||res.status===204) { flash('Role deleted.'); setTimeout(()=>location.reload(),800); }
+  else { const d=await res.json().catch(()=>({})); flash(d.detail||'Delete failed.','error'); }
+}
+</script>
+{% endif %}
+{% endblock %}

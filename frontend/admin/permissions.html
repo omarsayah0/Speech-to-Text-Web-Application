@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% set active = "permissions" %}
+{% block title %}Permissions{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Permissions</h1>
+  {% if is_admin %}<button class="btn btn-primary" onclick="openCreate()">+ New Permission</button>{% endif %}
+</div>
+
+<div id="flash"></div>
+
+{% if is_admin %}
+<div id="form-panel" style="display:none;" class="card" style="max-width:500px;">
+  <h3 id="form-title" style="font-size:15px; margin-bottom:16px;">New Permission</h3>
+  <div class="form-group">
+    <label>Code</label>
+    <input type="text" id="f-code" placeholder="resource.action" />
+  </div>
+  <div class="form-group">
+    <label>Description <span style="font-weight:400; text-transform:none;">(optional)</span></label>
+    <input type="text" id="f-desc" placeholder="Human-readable description" />
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-primary" onclick="submitForm()">Save</button>
+    <button class="btn btn-ghost" onclick="closeForm()">Cancel</button>
+  </div>
+</div>
+{% endif %}
+
+<div class="card" style="padding:0;">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Description</th>
+          <th>Created</th>
+          {% if is_admin %}<th>Actions</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in permissions %}
+        <tr>
+          <td><code style="background:#f0f1f5; padding:2px 6px; border-radius:4px; font-size:12px;">{{ p.code }}</code></td>
+          <td style="color:var(--muted);">{{ p.description or '—' }}</td>
+          <td>{{ p.created_at.strftime('%Y-%m-%d') }}</td>
+          {% if is_admin %}
+          <td>
+            <button class="btn btn-danger btn-sm" onclick="deletePerm('{{ p.id }}', '{{ p.code }}')">Delete</button>
+          </td>
+          {% endif %}
+        </tr>
+        {% else %}
+        <tr><td colspan="{% if is_admin %}4{% else %}3{% endif %}" style="text-align:center; color:var(--muted); padding:32px;">No permissions yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if is_admin %}
+<script>
+function openCreate() {
+  document.getElementById('f-code').value = '';
+  document.getElementById('f-desc').value = '';
+  document.getElementById('form-panel').style.display = 'block';
+  document.getElementById('f-code').focus();
+}
+
+function closeForm() {
+  document.getElementById('form-panel').style.display = 'none';
+}
+
+function flash(msg, type = 'success') {
+  document.getElementById('flash').innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+  if(type==='success') setTimeout(()=>document.getElementById('flash').innerHTML='', 3000);
+}
+
+async function submitForm() {
+  const code = document.getElementById('f-code').value.trim();
+  const description = document.getElementById('f-desc').value.trim() || null;
+
+  if (!code) {
+    flash('Code is required.', 'error');
+    return;
+  }
+
+  const res = await fetch('/admin/permissions', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({code, description})
+  });
+
+  if (res.ok) {
+    closeForm();
+    location.reload();
+  } else {
+    const d = await res.json().catch(()=>({}));
+    flash(d.detail || 'Save failed.', 'error');
+  }
+}
+
+async function deletePerm(id, code) {
+  if (!confirm(`Delete permission "${code}"?`)) return;
+
+  const res = await fetch(`/admin/permissions/${id}`, { method: 'DELETE' });
+
+  if (res.ok || res.status === 204) {
+    flash('Deleted.');
+    setTimeout(()=>location.reload(), 800);
+  } else {
+    const d = await res.json().catch(()=>({}));
+    flash(d.detail||'Delete failed.','error');
+  }
+}
+</script>
+{% endif %}
+{% endblock %}

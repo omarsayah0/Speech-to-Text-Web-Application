@@ -1,0 +1,210 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Upgrade Plan – STT</title>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; }
+      body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; background: #f5f5f5; padding: 40px 16px; }
+      .card { background: #fff; padding: 36px; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,.12); width: 100%; max-width: 480px; }
+      h2 { margin: 0 0 4px; font-size: 22px; }
+      .subtitle { color: #555; font-size: 13px; margin-bottom: 24px; }
+      .current-plan { background: #f0f4ff; border: 1px solid #c5d3ff; border-radius: 6px; padding: 10px 16px; margin-bottom: 20px; font-size: 13px; color: #444; }
+      .current-plan strong { color: #1a73e8; }
+
+      /* Plan selection cards */
+      .plans-grid { display: grid; gap: 10px; margin-bottom: 24px; }
+      .plan-option { border: 2px solid #e2e4ea; border-radius: 8px; padding: 14px 16px; cursor: pointer; transition: border-color .15s, background .15s; display: flex; align-items: center; gap: 14px; }
+      .plan-option:hover { border-color: #1a73e8; background: #f7f9ff; }
+      .plan-option.selected { border-color: #1a73e8; background: #f0f4ff; }
+      .plan-option input[type=radio] { accent-color: #1a73e8; width: 16px; height: 16px; flex-shrink: 0; }
+      .plan-option .plan-info { flex: 1; }
+      .plan-option .plan-name { font-weight: 700; font-size: 15px; }
+      .plan-option .plan-desc { font-size: 12px; color: #666; margin-top: 2px; }
+      .plan-option .plan-price { font-weight: 700; font-size: 17px; color: #1a73e8; white-space: nowrap; }
+      .plan-option .plan-price span { font-size: 12px; font-weight: 400; color: #888; }
+
+      /* Payment section */
+      #payment-section { display: none; }
+      .section-title { font-size: 13px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 14px; border-top: 1px solid #e2e4ea; padding-top: 18px; }
+      label { display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .4px; }
+      input { width: 100%; padding: 10px 12px; font-size: 14px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 16px; }
+      input:focus { outline: none; border-color: #1a73e8; }
+      .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .dummy-notice { background: #fffbe6; border: 1px solid #ffe58f; border-radius: 6px; padding: 10px 14px; font-size: 12px; color: #7d6608; margin-bottom: 16px; }
+
+      button#pay-btn { width: 100%; padding: 12px; font-size: 15px; font-weight: 600; background: #1a73e8; color: #fff; border: none; border-radius: 6px; cursor: pointer; margin-top: 4px; }
+      button#pay-btn:hover { background: #1558b0; }
+      button#pay-btn:disabled { background: #9ab4e8; cursor: not-allowed; }
+      .err { color: #c00; font-size: 13px; margin-bottom: 12px; display: none; }
+      .secure { text-align: center; font-size: 11px; color: #999; margin-top: 14px; }
+      .back { text-align: center; font-size: 13px; margin-top: 14px; }
+      .back a { color: #1a73e8; text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h2>Change Your Plan</h2>
+      <p class="subtitle">Switch to any plan — upgrade or downgrade anytime</p>
+
+      <div class="current-plan">
+        Current plan: <strong>{{ current_plan | upper }}</strong>
+      </div>
+
+      <!-- Plan options (only upgradeable plans shown) -->
+      <div class="plans-grid">
+        {% for plan_name in available_upgrades %}
+        {% set price = plan_prices[plan_name] %}
+        <label class="plan-option" id="label-{{ plan_name }}">
+          <input type="radio" name="selected_plan" value="{{ plan_name }}"
+            {% if loop.first %}checked{% endif %}
+            onchange="onPlanChange()" />
+          <div class="plan-info">
+            <div class="plan-name">{{ plan_name | capitalize }}</div>
+            <div class="plan-desc">
+              {% if plan_name == 'small' %}Unlocks: Tiny + Small models{% endif %}
+              {% if plan_name == 'medium' %}Unlocks: Tiny + Small + Medium models{% endif %}
+              {% if plan_name == 'large' %}Unlocks: All models (Tiny, Small, Medium, Large){% endif %}
+            </div>
+          </div>
+          <div class="plan-price">
+            {% if price == 0 %}Free{% else %}<span>$</span>{{ price }}<span>/mo</span>{% endif %}
+          </div>
+        </label>
+        {% endfor %}
+      </div>
+
+      <div class="err" id="err"></div>
+
+      <!-- Payment section (hidden for free plan) -->
+      <div id="payment-section">
+        <div class="section-title">Payment Details</div>
+
+        <div class="dummy-notice">
+          🧪 <strong>Demo mode:</strong> Enter any values below — no real charge will occur.
+        </div>
+
+        <label>Card Number</label>
+        <input type="text" id="card_number" placeholder="1234 5678 9012 3456" maxlength="19" />
+
+        <div class="row2">
+          <div>
+            <label>Expiry</label>
+            <input type="text" id="expiry" placeholder="MM/YY" maxlength="5" />
+          </div>
+          <div>
+            <label>CVC</label>
+            <input type="text" id="cvc" placeholder="123" maxlength="4" />
+          </div>
+        </div>
+      </div>
+
+      <button id="pay-btn" onclick="pay()">Continue</button>
+
+      <p class="secure">🔒 Simulated secure checkout</p>
+      <p class="back"><a href="/app">← Back to app</a></p>
+    </div>
+
+    <script>
+      const planOrder = ["tiny", "small", "medium", "large"];
+      const currentPlan = {{ current_plan | tojson }};
+      const planPrices = {{ plan_prices | tojson }};
+
+      function getSelectedPlan() {
+        const radios = document.querySelectorAll('input[name="selected_plan"]');
+        for (const r of radios) { if (r.checked) return r.value; }
+        return null;
+      }
+
+      function onPlanChange() {
+        const plan = getSelectedPlan();
+        const price = planPrices[plan] || 0;
+        const paySection = document.getElementById('payment-section');
+        const btn = document.getElementById('pay-btn');
+
+        // Highlight selected card
+        document.querySelectorAll('.plan-option').forEach(el => el.classList.remove('selected'));
+        const selectedLabel = document.getElementById('label-' + plan);
+        if (selectedLabel) selectedLabel.classList.add('selected');
+
+        if (price === 0) {
+          paySection.style.display = 'none';
+          btn.textContent = 'Switch to Free (Tiny) Plan';
+        } else {
+          const isDowngrade = planOrder.indexOf(plan) < planOrder.indexOf(currentPlan);
+          paySection.style.display = isDowngrade ? 'none' : 'block';
+          if (isDowngrade) {
+            btn.textContent = `Downgrade to ${plan.charAt(0).toUpperCase() + plan.slice(1)} ($${price}/mo)`;
+          } else {
+            btn.textContent = `Pay $${price}/month`;
+          }
+        }
+      }
+
+      // Init on load
+      onPlanChange();
+
+      // Auto-format card number
+      document.getElementById('card_number').addEventListener('input', function () {
+        let v = this.value.replace(/\D/g, '').substring(0, 16);
+        this.value = v.replace(/(.{4})/g, '$1 ').trim();
+      });
+
+      // Auto-format expiry
+      document.getElementById('expiry').addEventListener('input', function () {
+        let v = this.value.replace(/\D/g, '').substring(0, 4);
+        if (v.length >= 3) v = v.substring(0, 2) + '/' + v.substring(2);
+        this.value = v;
+      });
+
+      async function pay() {
+        const plan = getSelectedPlan();
+        const price = planPrices[plan] || 0;
+        const errEl = document.getElementById('err');
+        const btn = document.getElementById('pay-btn');
+        errEl.style.display = 'none';
+
+        if (!plan) {
+          errEl.textContent = 'Please select a plan.';
+          errEl.style.display = 'block';
+          return;
+        }
+
+        const card_number = document.getElementById('card_number').value.trim();
+        const expiry = document.getElementById('expiry').value.trim();
+        const cvc = document.getElementById('cvc').value.trim();
+
+        const isDowngrade = planOrder.indexOf(plan) < planOrder.indexOf(currentPlan);
+
+        if (price > 0 && !isDowngrade && (!card_number || !expiry || !cvc)) {
+          errEl.textContent = 'Please fill in all payment fields.';
+          errEl.style.display = 'block';
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Processing…';
+
+        if (price > 0) {
+          await new Promise(r => setTimeout(r, 1200));
+        }
+
+        const res = await fetch('/subscription/upgrade', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ plan, card_number, expiry, cvc }),
+        });
+
+        if (res.ok) {
+          window.location.href = '/upgrade/success';
+        } else {
+          const data = await res.json().catch(() => ({}));
+          errEl.textContent = data.detail || 'Upgrade failed. Please try again.';
+          errEl.style.display = 'block';
+          btn.disabled = false;
+          onPlanChange(); // restore button text
+        }
+      }
+    </script>
+  </body>
+</html>

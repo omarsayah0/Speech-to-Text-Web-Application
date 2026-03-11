@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Plan Upgraded! – STT</title>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; }
+      body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f5f5f5; }
+      .card { background: #fff; padding: 48px 36px; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,.12); width: 100%; max-width: 400px; text-align: center; }
+      .icon { font-size: 56px; margin-bottom: 16px; }
+      h2 { margin: 0 0 8px; font-size: 24px; color: #1a73e8; }
+      p { color: #555; font-size: 14px; line-height: 1.7; margin: 0 0 28px; }
+      .badge { display: inline-block; background: #e8ecff; color: #1a73e8; font-weight: 700; font-size: 13px; padding: 4px 14px; border-radius: 99px; margin-bottom: 20px; }
+      a.btn { display: inline-block; padding: 11px 28px; background: #1a73e8; color: #fff; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 600; }
+      a.btn:hover { background: #1558b0; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="icon">🎉</div>
+      <h2>Plan Upgraded!</h2>
+      <div class="badge">{{ plan | upper }} PLAN ACTIVE</div>
+      <p>
+        Your subscription has been activated.<br>
+        {% if plan == 'small' %}
+          You now have access to the <strong>Tiny</strong> and <strong>Small</strong> STT models.
+        {% elif plan == 'medium' %}
+          You now have access to <strong>Tiny</strong>, <strong>Small</strong>, and <strong>Medium</strong> STT models.
+        {% elif plan == 'large' %}
+          You now have access to <strong>all STT models</strong>, including the <strong>Large</strong> model for maximum accuracy.
+        {% else %}
+          You are on the free Tiny plan.
+        {% endif %}
+      </p>
+      <a href="/app" class="btn">Go to the app →</a>
+    </div>
+  </body>
+</html>
