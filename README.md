@@ -4,7 +4,7 @@ A Dockerized Speech-to-Text web application built with **FastAPI** that allows u
 
 ---
 
-## 📖 Introduction
+## Introduction
 
 This project demonstrates how to build a **production-style backend system** for audio transcription. Users can upload audio files through a web interface, and the system processes them using speech-to-text models to generate text output.
 
@@ -14,17 +14,17 @@ The system also includes authentication, role management, and an admin dashboard
 
 ## 🧾 Table of Contents
 
-- [Introduction](#-introduction)
+- [Introduction](#introduction)
 - [Project Structure](#-Project-Structure)
-- [Features](#-Features)
-- [Installation](#-installation)
-- [Usage](#-Usage)
-- [System Architecture](#-System-Architecture)
-- [Configuration](#-Configuration)
-- [Examples](#-Examples)
-- [Troubleshooting](#-Troubleshooting)
+- [Features](#Features)
+- [Installation](#Installation)
+- [Usage](#Usage)
+- [System Architecture](#System-Architecture)
+- [Configuration](#Configuration)
+- [Examples](#Examples)
+- [Troubleshooting](#Troubleshooting)
 - [Dependencies](#-Dependencies)
-- [Output Snapshots](#-Output-Snapshots)
+- [Output Snapshots](#Output-Snapshots)
 - [Contributors](#-Contributors)
 - [License](#-License)
 
