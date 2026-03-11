@@ -166,7 +166,7 @@ From `requirements.txt`:
 
 ## Output Snapshots
 
-<img width="1908" height="941" alt="2347183a-5f6d-43fa-8c47-60aecf5503ba" src="https://github.com/user-attachments/assets/9ee2fe64-f066-4e69-baba-a8746e01a7e9" />
+<img width="1892" height="942" alt="dd1d4528-aa22-4fc8-a4ea-f78402f41370" src="https://github.com/user-attachments/assets/0833800c-6b5e-4513-a83b-f75b0af90517" />
 <img width="1899" height="952" alt="2c454d57-42c1-4f09-8ef6-ee7b1a24c23a" src="https://github.com/user-attachments/assets/bca08c94-a96c-4d3e-a9c9-d8cbaa73dc2d" />
 <img width="1901" height="952" alt="205c69f0-cf3e-444a-be23-1420550b7295" src="https://github.com/user-attachments/assets/25e7584f-72d1-485a-b5ce-20ca402d40e6" />
 <img width="1908" height="941" alt="2347183a-5f6d-43fa-8c47-60aecf5503ba" src="https://github.com/user-attachments/assets/0a7995a5-c55e-4e10-bdc5-7ff9aa4292c9" />
