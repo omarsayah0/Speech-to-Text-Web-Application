@@ -14,7 +14,7 @@ The system also includes authentication, role management, and an admin dashboard
 
 ## 🧾 Table of Contents
 
-- Introduction
+- Introduction(#-introduction)
 - Features
 - Installation
 - Usage
