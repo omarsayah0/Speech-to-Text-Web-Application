@@ -61,7 +61,7 @@ The system also includes authentication, role management, and an admin dashboard
 Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/speech-to-text-app.git
+git clone https://github.com/omarsayah0/Speech-to-Text-Web-Application.git
 cd speech-to-text-app
 ```
 
