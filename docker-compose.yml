@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  omar_data:
+    image: postgres:16
+    container_name: omar_data
+    environment:
+      POSTGRES_USER: omar
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: omar_data
+    ports:
+      - "5432:5432"
+    volumes:
+      - omar_pgdata:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: stt-app
+    depends_on:
+      - omar_data
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  omar_pgdata:
