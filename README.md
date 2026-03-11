@@ -74,7 +74,7 @@ The application will start locally.
 
 ---
 
-## 🚀 Usage
+## Usage
 
 1. Open your browser and navigate to:
 
@@ -88,7 +88,7 @@ http://localhost:8000
 
 ---
 
-## 🧠 System Architecture
+## System Architecture
 
 The application follows a typical **backend + frontend architecture**:
 
@@ -109,7 +109,7 @@ The application follows a typical **backend + frontend architecture**:
 
 ---
 
-## 🔧 Configuration
+## Configuration
 
 Key components used in the system:
 
@@ -120,7 +120,7 @@ Key components used in the system:
 
 ---
 
-## 💡 Examples
+## Examples
 
 Typical workflow:
 
@@ -131,7 +131,7 @@ Typical workflow:
 
 ---
 
-## 🛠 Troubleshooting
+## Troubleshooting
 
 If the application does not start:
 
