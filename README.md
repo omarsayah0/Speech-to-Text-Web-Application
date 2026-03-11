@@ -15,17 +15,18 @@ The system also includes authentication, role management, and an admin dashboard
 ## 🧾 Table of Contents
 
 - [Introduction](#-introduction)
-- Features
-- Installation
-- Usage
-- System Architecture
-- Configuration
-- Examples
-- Troubleshooting
-- Dependencies
-- Project Structure
-- Contributors
-- License
+- [Features](#-Features)
+- [Installation](#-Installation)
+- [Usage](#-Usage)
+- [System Architecture](#-System-Architecture)
+- [Configuration](#-Configuration)
+- [Examples](#-Examples)
+- [Troubleshooting](#-Troubleshooting)
+- [Dependencies](#-Dependencies)
+- [Project Structure](#-Project-Structure)
+- [Output Snapshots](#-Output-Snapshots)
+- [Contributors](#-Contributors)
+- [License](#-License)
 
 ---
 
