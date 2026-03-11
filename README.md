@@ -166,7 +166,7 @@ From `requirements.txt`:
 
 ## 👥 Contributors
 
-**Omar Alethamat** – Backend & AI Development
+**Omar Alethamat** – AI Engineer
 
 Feel free to open issues or pull requests to contribute.
 
