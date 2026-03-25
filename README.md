@@ -1,4 +1,4 @@
-# 🎙️ Speech-to-Text Web Application
+# 🎙️ STT_Service
 
 A Dockerized Speech-to-Text web application built with **FastAPI** that allows users to upload audio files and convert them into text using AI transcription models. The project demonstrates backend architecture concepts such as authentication, role-based access control, job processing, and containerized deployment.
 
